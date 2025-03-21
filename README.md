@@ -1,101 +1,329 @@
-# Netlify Next.js + Contentful Minimal Starter
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface Futurista</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
 
-![Screenshot](https://assets.stackbit.com/docs/tutorial-shared-thumb.png)
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
 
-**⚡ View demo:** [nextjs-contentful-starter.netlify.app](https://nextjs-contentful-starter.netlify.app/)
+        .turn-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
 
-## Prerequisites
+        .btn-turn {
+            padding: 15px 25px;
+            font-size: 18px;
+            background: #00b7ff;
+            border: none;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00b7ff;
+            transition: all 0.3s;
+        }
 
-Before you begin, please make sure you have the following:
+        .btn-turn:hover {
+            box-shadow: 0 0 20px #00b7ff;
+        }
 
-- [Netlify account](https://www.netlify.com/)
-- [Contentful account](https://www.contentful.com/)
-- GitHub, GitLab or Bitbucket account
-- Node v18+ or later
-- (optional) [nvm](https://github.com/nvm-sh/nvm) for Node version management.
+        .circles {
+            display: flex;
+            gap: 15px;
+        }
 
-## Getting Started
+        .circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #555;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 5px rgba(255,255,255,0.1);
+        }
 
-### Clone this repository
+        .circle.on {
+            background: #ff3333;
+            box-shadow: 0 0 15px #ff3333;
+        }
 
-Fork and clone your repository, then run `npm install` in its root directory.
+        .calculator {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,183,255,0.2);
+        }
 
-### Create Contentful Space
+        #display {
+            width: 100%;
+            height: 60px;
+            background: #111;
+            color: #00ffcc;
+            font-size: 28px;
+            text-align: right;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 10px rgba(0,255,204,0.1);
+        }
 
-After signing into Contentful, create a new space. 
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
 
-### Generate Management Token
+        button {
+            padding: 20px;
+            font-size: 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #444;
+            color: white;
+            transition: all 0.3s;
+            box-shadow: 0 0 5px rgba(255,255,255,0.1);
+        }
 
-If you don't already have a management token (or _personal access token_), generate one. To do so, go into your new empty space, then:
+        button:hover {
+            background: #666;
+            box-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
 
-1. Click _Settings_
-1. Choose _API Keys_
-1. Select the _Content management tokens_ tab
-1. Click the button to generate a new token
+        .op {
+            background: #00b7ff;
+        }
 
-![Generate content management token](./docs/generate-mgmt-token.png)
+        .history {
+            margin-top: 20px;
+            color: #00ffcc;
+            font-size: 18px;
+        }
 
-### Generate Preview & Delivery API Keys
+        .separator {
+            width: 100%;
+            height: 2px;
+            background: #00b7ff;
+            margin: 20px 0;
+            box-shadow: 0 0 10px #00b7ff;
+        }
 
-From the same place you generated the management token, you can now generate API access keys.
+        .rules-section {
+            color: #00ffcc;
+            font-size: 16px;
+            text-align: left;
+        }
 
-1. Select the *content delivery / preview tokens* tab
-1. Choose *Add API key*
+        .rules-section h2 {
+            text-align: center;
+            color: #00b7ff;
+            text-shadow: 0 0 10px #00b7ff;
+            margin-bottom: 15px;
+        }
 
-### Set Environment Variables
+        .rules-section p {
+            margin: 5px 0;
+        }
 
-In your project, duplicate `.env.example` to `.env`. 
+        .blink {
+            animation: blink 0.5s infinite;
+        }
 
-Fill in the values in the file based on the keys you've created. 
+        @keyframes blink {
+            50% { background: #ff3333; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="turn-section">
+            <button class="btn-turn" onclick="nextTurn()">MEU TURNO</button>
+            <div class="circles">
+                <div class="circle on" onclick="toggleCircle(this)"></div>
+                <div class="circle on" onclick="toggleCircle(this)"></div>
+                <div class="circle on" onclick="toggleCircle(this)"></div>
+                <div class="circle" onclick="toggleCircle(this)"></div>
+                <div class="circle" onclick="toggleCircle(this)"></div>
+            </div>
+        </div>
 
-Note: the Contentful space ID can be viewed and copied via *Settings->General Settings* in Contentful.
+        <div class="calculator">
+            <input type="text" id="display" value="10000" readonly>
+            <div class="buttons">
+                <button onclick="clearDisplay()">C</button>
+                <button onclick="back()">↶</button>
+                <button class="op" onclick="operation('-')">-</button>
+                <button class="op" onclick="operation('+')">+</button>
+                <button onclick="addNumber('7')">7</button>
+                <button onclick="addNumber('8')">8</button>
+                <button onclick="addNumber('9')">9</button>
+                <button onclick="addNumber('4')">4</button>
+                <button onclick="addNumber('5')">5</button>
+                <button onclick="addNumber('6')">6</button>
+                <button onclick="addNumber('1')">1</button>
+                <button onclick="addNumber('2')">2</button>
+                <button onclick="addNumber('3')">3</button>
+                <button onclick="addNumber('0')">0</button>
+                <button onclick="calculate()">=</button>
+            </div>
+        </div>
+        <div class="history">Histórico: <span id="history">10000</span></div>
+        <div class="separator"></div>
+        <div class="rules-section">
+            <h2>PAINEL COSMIC DUEL</h2>
+            <p><strong>Regras Básicas do Jogo:</strong></p>
+            <p><strong>Vida inicial:</strong> 10.000 pontos por jogador.</p>
+            <p><strong>Deck:</strong> 36 cartas (monstros, mágicas, armadilhas e campo).</p>
+            <p><strong>Energia Cósmica (Esferas vermelhas) 🔴</strong><br>
+            Começa com 3 energia, ganha 1 por turno (máximo 5).<br>
+            Usada para invocar monstros de nível 3+ e ativar certas cartas.</p>
+            <p><strong>Fases do turno:</strong><br>
+            • <strong>Compra:</strong> Compre 1 carta.<br>
+            • <strong>Principal:</strong> Invoque monstros, use mágicas/armadilhas.<br>
+            (Um monstro por turno a não ser que um efeito permita mais monstros serem invocados, cartas mágicas/armadilhas sem limite de invocação).<br>
+            • <strong>Batalha:</strong> Ataque com monstros.<br>
+            • <strong>Final:</strong> Ajuste o campo e passe o turno.</p>
+            <p><strong>Invocação:</strong><br>
+            Níveis 1-4: Sem sacrifício (3-4 custam Energia).<br>
+            Níveis 5-6: Sacrifique 1 monstro + Energia.<br>
+            Nível 7 (raro): Sacrifique 2 monstros + Energia.</p>
+            <p><strong>Combate:</strong><br>
+            Ataque direto ou contra monstros; Atacar em DEF não tira dano, mas recebe dano se a DEF for maior que o ATK.</p>
+            <p><strong>Vitória:</strong> Zerar a vida do oponente ou esgotar seu deck.</p>
+        </div>
+    </div>
 
-### Import Content
+    <audio id="alertSound" src="https://www.myinstants.com/media/sounds/alarm.mp3"></audio>
 
-Import the provided content models & content into Contentful by running the `import.js` script:
+    <script>
+        let currentValue = '10000';
+        let history = ['10000'];
+        let operationType = '';
+        let firstNumber = '';
+        let isNewNumber = true;
 
-    npm run import
+        function toggleCircle(circle) {
+            circle.classList.toggle('on');
+        }
 
-If the import fails to run, make sure that you've run `npm install` and that all keys in your `.env` file are set correctly.
+        function nextTurn() {
+            const circles = document.querySelectorAll('.circle');
+            for (let circle of circles) {
+                if (!circle.classList.contains('on')) {
+                    circle.classList.add('on');
+                    break;
+                }
+            }
+        }
 
-### Run the Website
+        function addNumber(num) {
+            const display = document.getElementById('display');
+            if (isNewNumber) {
+                display.value = num;
+                isNewNumber = false;
+            } else {
+                display.value += num;
+            }
+            currentValue = display.value;
+        }
 
-Run the Next.js development server:
+        function operation(op) {
+            const display = document.getElementById('display');
+            if (firstNumber === '') {
+                firstNumber = currentValue;
+            }
+            operationType = op;
+            isNewNumber = true;
+        }
 
-    npm run dev
+        function calculate() {
+            const display = document.getElementById('display');
+            let result;
 
-Visit [localhost:3000](http://localhost:3000) and you should see the example content you imported into your new Contentful space.
+            if (operationType && firstNumber !== '') {
+                const secondNumber = currentValue;
+                if (operationType === '+') {
+                    result = parseInt(firstNumber) + parseInt(secondNumber);
+                } else if (operationType === '-') {
+                    result = parseInt(firstNumber) - parseInt(secondNumber);
+                }
+                
+                display.value = result;
+                currentValue = result.toString();
+                updateHistory(result);
+                firstNumber = result.toString();
+                checkZero();
+                isNewNumber = true;
+            }
+        }
 
-### Run Netlify Visual Editor in Local Development Mode
+        function clearDisplay() {
+            const display = document.getElementById('display');
+            display.value = '10000';
+            currentValue = '10000';
+            firstNumber = '';
+            operationType = '';
+            history = ['10000'];
+            updateHistoryDisplay();
+            isNewNumber = true;
+            display.classList.remove('blink');
+        }
 
-Keep the Next.js development server running, and open a new command-line window in the same directory.
+        function back() {
+            const display = document.getElementById('display');
+            if (history.length > 1) {
+                history.pop();
+                const previousValue = history[history.length - 1];
+                display.value = previousValue;
+                currentValue = previousValue;
+                firstNumber = previousValue;
+                operationType = '';
+                isNewNumber = true;
+                updateHistoryDisplay();
+                display.classList.remove('blink');
+            }
+        }
 
-Install Stackbit's CLI tools (once):
-    
-    npm i -g @stackbit/cli@latest
+        function updateHistory(result) {
+            if (history.length >= 5) {
+                history.shift();
+            }
+            history.push(result.toString());
+            updateHistoryDisplay();
+        }
 
-Run the CLI:
+        function updateHistoryDisplay() {
+            document.getElementById('history').textContent = history.join(', ');
+        }
 
-    stackbit dev
-
-Click the displayed link to [localhost:8090/_stackbit](http://localhost:8090/_stackbit) and the visual editor will open.
-
-### Create a Cloud-Based Netlify Project
-
-To deploy a cloud-based Netlify project your need to connected your repository to Netlify:
-
-1. If you haven't created your GitHub project repository, create it and push your code to GitHub
-2. Open the [app.netlify.com](https://app.netlify.com/), and choose "Import from Git" in the "Import an existing project" section
-3. In the "Configure site and deploy" step you will see the "Visual editor" section. To make it work, you will need to install "Netlify Visual Editor GitHub App" in your GitHub account.
-4. Deploy your project
-
-## Next Steps
-
-Here are a few suggestions on what to do next if you're new to Netlify visual editor:
-
-- Learn [how Netlify visual editor works](https://docs.netlify.com/visual-editor/overview/)
-- Check [Netlify visual editor reference documentation](https://visual-editor-reference.netlify.com/)
-
-## Support
-
-If you get stuck along the way, get help in our [support forums](https://answers.netlify.com/).
+        function checkZero() {
+            const display = document.getElementById('display');
+            if (parseInt(currentValue) === 0) {
+                display.classList.add('blink');
+                document.getElementById('alertSound').play();
+            } else {
+                display.classList.remove('blink');
+            }
+        }
+    </script>
+</body>
+</html>
